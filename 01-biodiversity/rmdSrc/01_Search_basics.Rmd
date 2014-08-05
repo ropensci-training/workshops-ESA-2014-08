@@ -1,0 +1,72 @@
+### spocc - search basics
+
+### Load libraries
+
+```{r load, message=FALSE, warning=FALSE}
+library(spocc)
+```
+
+### spocc unifies access to biodiversity data across sources
+
+Spocc will search across multiple sources, but we'll start with one and go over the anatomy of a spocc query result. Each query returns metadata about the query and the data itself.  A summary is printed showing the number of results from each source.
+
+```{r sources, message=FALSE, warning=FALSE}
+out <- occ(query='Accipiter striatus', from='gbif')
+out # prints summary of output data
+out$gbif # GBIF data w/ metadata
+out$ebird$data # empty
+out$gbif$meta #  metadata, your query parameters, time the call executed, etc. 
+out$gbif$data # just data
+```
+
+And you can squash together data from sources easily, so let's review this again, but this time with one species from multiple sources.
+
+```{r manysources, message=FALSE, warning=FALSE}
+out <- occ(query='Accipiter striatus', from=c('gbif','bison'))
+out # See the summary with each source
+out$gbif$data
+out$bison$data
+```
+
+
+You can also search for multiple species from multiple sources.  Let's add a couple more hawk species to our search.  We can also condense these results nicely into a single dataframe.
+
+```{r multiple species, message=FALSE, warning=FALSE}
+out <- occ(query=c('Accipiter striatus',"Accipter cooperii","Buteo jamaicensis"), from=c('inat','bison'))
+out <- occ2df(out) # See the summary with each source
+head(out)
+tail(out)
+```
+
+But, what if you want to just search within a given area? `spocc` can search with a variety of complex polygon types, but for today we'll just use a bounding box.  If you need help finding a box, try [ http://boundingbox.klokantech.com/](http://boundingbox.klokantech.com/)
+
+```{r bounding box}
+bbox <- c(-80.79,38.64,-69.62,45.56)
+### Searching for sugar maples in New England
+out <- occ(query='Acer saccharum', from=c('inat','gbif'), geometry=bbox, limit = 100)
+
+```
+
+All of our searches can easily be integrated with some handy features from the `taxize` package.  This is because all of our searches rely on scientific names.  But what if you don't have a list of scientif names? That's no problem with taxize. Let's return to our Maple example.
+
+```{r taxize 1}
+library(taxize)
+comm_splist <- c("Sugar maple","Red maple","Silver maple")
+splist <- comm2sci(comm_splist,db='ncbi',simplify=TRUE)
+out <- occ(query=unlist(splist), from=c('inat','gbif'), geometry=bbox, limit = 100)
+out
+```
+
+Another scenario for easy searching with taxize is downstream taxonomic names.  Here we can easily grab all the species in genus.  Let's say I want to search for all bee species that live in our bounding box, and see how many actually return results.
+
+```{r taxize 2}
+bees <- col_downstream(name="Apis", downto="Species")
+### Check the form
+bees
+out <- occ(query=bees$Apis$childtaxa_name, from=c('bison','gbif'), geometry=bbox, limit = 100)
+out <- occ2df(out)
+unique(out$name)
+
+```
+
+
