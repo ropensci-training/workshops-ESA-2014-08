@@ -15,7 +15,15 @@ install.packages("taxize", dependencies = TRUE)
 install.packages("rWBclimate", dependencies = TRUE)
 install.packages("maps")
 install.packages("sp")
+install.packages("ggplot2")
+
+### Suggesed
+install.packages("devtools")
+library(devtools)
+install_github("prism", "ropensci")
+install.packages("raster")
 install.packages("rgdal")
+
 ```
 
 ## Schedule 
