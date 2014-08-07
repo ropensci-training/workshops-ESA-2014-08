@@ -1,0 +1,90 @@
+---
+title: "Prism overlay"
+author: "Ted Hart"
+date: "August 6, 2014"
+output: html_document
+---
+
+`spocc` also allows for interaction with other spatial objects with the ability to transform a `spocc` dataframe into a spatial points object.  We can easily grab some spatial data using an rOpenSci package currently in development called `prism`.  So first let's grab some temperature data and load it up.
+
+```{r load prism data}
+#install_github("prism", "ropensci")
+library(prism)
+options(prism.path = "~/prismtmp")
+get_prism_normals(type="tmean", annual=TRUE, resolution = "4km",keepZip=F)
+ls_prism_data()
+prism_image(ls_prism_data()[1])
+prismfile <- ls_prism_data(absPath=T)[1]
+unprojDep <- raster(prismfile)
+crs_str <- "+init=EPSG:4326 +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+projDep <- projectRaster(from = unprojDep,crs=crs_str)
+```
+
+Next let's grab some tree species that are distributed across the US.
+
+```{r tree data}
+
+splist <- sort(c("Acer saccharum", "Abies balsamea", "Arbutus xalapensis", "Betula alleghaniensis", "Chilopsis linearis", "Conocarpus erectus", "Populus tremuloides", "Larix laricina"))
+out <- occ(query = splist, from = c("bison"), limit = 100)
+## scrub names
+out <- fixnames(out, how = "query")
+## Create a data frame of all data.
+out_df <- occ2df(out)
+```
+
+Now we want to check and make sure that our points are actually on the map. 
+```{r plotting}
+plot(projDep)
+points(out_df$longitude,out_df$latitude)
+```
+
+The last thing we'll do is use `sci2comm` to convert our list of latin names into common names, convert our query to a spatial point object, and then grab the mean temperature and mean latitute of each species.
+
+```{r}
+library(plyr)
+## Get common names
+cname <- ldply(sci2comm(get_tsn(splist), db = "itis", simplify = TRUE), function(x) { return(x[1]) })[, 2]
+
+#convert our query to a spatial object
+sp_points <- occ_to_sp(out, coord_string = crs_str)
+
+## Grab the mean temperature and 
+mtemp <- rep(NA,length(splist))
+mlat <- rep(NA,length(splist))
+for (i in 1:length(splist)) {
+  tmp_sp <- sp_points[which(sp_points$name == splist[i]), ]
+  mtemp[i] <- mean(unlist(extract(projDep,tmp_sp,buffer = 100)),na.rm=T)
+  mlat[i] <- mean(coordinates(tmp_sp)[,2])
+}
+df <- data.frame(cbind(mtemp,mlat))
+df$name <- cname
+```
+
+Lastly we can now plot mean temerature from our prism map vs mean latitude for each species.  We'll lable the point with the common name.
+
+```{r ggplot prism}
+ggplot(df, aes(x = mlat, y = mtemp, label = name)) +
+  geom_text() +
+  xlab("Mean Latitude") +
+  ylab("Mean Temperature (C)") +
+  theme_bw() +
+  xlim(15, 50)
+```
+
+While above we had a nice quick and dirty plot to check out work, let's consider making a nicer map wih `ggplot2`
+
+```{r ggplot map}
+## NOTE: this only works because I was sure to sort my species names alphabetically.
+## Otherwise an insideous error would likely happen
+
+out_df$common_name <- rep(cname,table(out_df$name))
+gpoints <- rasterToPoints(projDep)
+df = data.frame(gpoints)
+colnames(df) = c("x", "y", "Temperature")
+
+
+spover  <- ggplot() + geom_tile(data = df, aes(x, y, fill=Temperature)) + geom_point(data=out_df,aes(x=longitude,y=latitude, group=common_name,colour=common_name)) + labs(x=NULL, y=NULL) +  scale_fill_gradient2(low="blue", mid = "yellow", high="red", midpoint = 12.5) + theme_bw() + xlim(-125,-66) + ylim(25,50)+scale_colour_brewer(palette="Set1")
+print(spover)
+
+```
+

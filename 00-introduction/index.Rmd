@@ -100,5 +100,5 @@ mapleaflet(data = data, dest = ".")
 
 ## And more
 
-We'll also cover integration with other ropensci packages that draw on taxonomic sources, and other spatial data.
+We'll also cover integration with other rOpenSci packages that draw on taxonomic sources, and other spatial data.
 
