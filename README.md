@@ -31,7 +31,7 @@ install.packages("rgdal")
 |Topic|Time|
 |---------------|-------|
 |**Setup-Make sure all widgets are whirling**| 11:30 - 11:40 |
-|**Introduction** [slides](http://bit.ly/ro-esa2014) | 11:40 - 11:50 |
+|**Introduction** [slides](00-introduction/index.html) | 11:40 - 11:50 |
 |**Biodiversity records**  | 11:50 - 1:00 |
 |**Wrap up and discussion**  | 1:00 - 1:15 |
 
