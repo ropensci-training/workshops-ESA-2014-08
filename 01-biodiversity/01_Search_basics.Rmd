@@ -1,18 +1,18 @@
 ---
 title: "Search Basics"
 author: "Ted Hart"
-date: "August 5, 2014"
+date: "August 11, 2014"
 output: html_document
 ---
-### spocc - search basics
+###spocc - search basics
 
-### Load libraries
+###Load libraries
 
 ```{r load, message=FALSE, warning=FALSE}
 library(spocc)
 ```
 
-### spocc unifies access to biodiversity data across sources
+###spocc unifies access to biodiversity data across sources
 
 Spocc will search across multiple sources, but we'll start with one and go over the anatomy of a spocc query result. Each query returns metadata about the query and the data itself.  A summary is printed showing the number of results from each source.
 

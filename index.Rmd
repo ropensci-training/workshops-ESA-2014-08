@@ -1,6 +1,10 @@
+---
+output: html_document
+---
 
 [![](00-introduction/img/ropensci_logo_sm.png)](http://ropensci.org/)
-# ESA 2014 Workshop
+
+#ESA 2014 Workshop
 
 **Monday August 11th, 11:30 AM-1:15 PM**
 

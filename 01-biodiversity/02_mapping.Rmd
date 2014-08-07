@@ -1,7 +1,7 @@
 ---
-title: "Vizualization"
+title: "Visualizing spocc data"
 author: "Ted Hart"
-date: "August 5, 2014"
+date: "August 11, 2014"
 output: html_document
 ---
 
@@ -47,7 +47,7 @@ ne_map + geom_point(data = occ2df(out),aes(x=longitude,y=latitude, group= name, 
 
 Another option in `spocc` is to make maps with some nice javascript maps as well.
 
-```{r leaflet}
+```{r leaflet, eval=FALSE}
 out <- occ(query=c('Acer saccharum'), from=c('gbif'), geometry=bbox, limit = 150)
 out <- occ2df(out)
 mapleaflet(data = out, dest = ".")
@@ -56,7 +56,7 @@ mapleaflet(data = out, dest = ".")
 
 We can also make maps with geoJSON and render them on github (if you have a github account)
 
-```{r geojson}
+```{r geojson, eval=FALSE u}
 out <- occ(query=c('Acer saccharum','Acer rubrum'), from='gbif',gbifopts = list(hasCoordinate=TRUE))
 out <- fixnames(out)
 out <- occ2df(out)

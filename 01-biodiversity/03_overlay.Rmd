@@ -1,19 +1,21 @@
 ---
-title: "Prism overlay"
+title: "Spatial data"
 author: "Ted Hart"
-date: "August 6, 2014"
+date: "August 11, 2014"
 output: html_document
 ---
 
 `spocc` also allows for interaction with other spatial objects with the ability to transform a `spocc` dataframe into a spatial points object.  We can easily grab some spatial data using an rOpenSci package currently in development called `prism`.  So first let's grab some temperature data and load it up.
 
-```{r load prism data}
+```{r load prism data,message=FALSE}
 #install_github("prism", "ropensci")
+library(raster)
 library(prism)
+library(spocc)
+library(taxize)
 options(prism.path = "~/prismtmp")
 get_prism_normals(type="tmean", annual=TRUE, resolution = "4km",keepZip=F)
 ls_prism_data()
-prism_image(ls_prism_data()[1])
 prismfile <- ls_prism_data(absPath=T)[1]
 unprojDep <- raster(prismfile)
 crs_str <- "+init=EPSG:4326 +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
@@ -40,7 +42,7 @@ points(out_df$longitude,out_df$latitude)
 
 The last thing we'll do is use `sci2comm` to convert our list of latin names into common names, convert our query to a spatial point object, and then grab the mean temperature and mean latitute of each species.
 
-```{r}
+```{r, message=FALSE}
 library(plyr)
 ## Get common names
 cname <- ldply(sci2comm(get_tsn(splist), db = "itis", simplify = TRUE), function(x) { return(x[1]) })[, 2]
@@ -73,7 +75,7 @@ ggplot(df, aes(x = mlat, y = mtemp, label = name)) +
 
 While above we had a nice quick and dirty plot to check out work, let's consider making a nicer map wih `ggplot2`
 
-```{r ggplot map}
+```{r ggplot map,fig.width=8,fig.height=5,message=FALSE,warning=FALSE}
 ## NOTE: this only works because I was sure to sort my species names alphabetically.
 ## Otherwise an insideous error would likely happen
 
@@ -83,8 +85,8 @@ df = data.frame(gpoints)
 colnames(df) = c("x", "y", "Temperature")
 
 
-spover  <- ggplot() + geom_tile(data = df, aes(x, y, fill=Temperature)) + geom_point(data=out_df,aes(x=longitude,y=latitude, group=common_name,colour=common_name)) + labs(x=NULL, y=NULL) +  scale_fill_gradient2(low="blue", mid = "yellow", high="red", midpoint = 12.5) + theme_bw() + xlim(-125,-66) + ylim(25,50)+scale_colour_brewer(palette="Set1")
-print(spover)
+ggplot() + geom_tile(data = df, aes(x, y, fill=Temperature)) + geom_point(data=out_df,aes(x=longitude,y=latitude, group=common_name,colour=common_name)) + labs(x=NULL, y=NULL) +  scale_fill_gradient2(low="blue", mid = "yellow", high="red", midpoint = 12.5) + theme_bw() + xlim(-125,-66) + ylim(25,50)+scale_colour_brewer(palette="Set1")
+
 
 ```
 
